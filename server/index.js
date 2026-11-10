@@ -32,7 +32,13 @@ const redisClient = redis.createClient({
   port: keys.redisPort,
   retry_strategy: () => 1000,
 });
+redisClient.on("error", (err) => {
+  console.error("Redis connection error:", err);
+});
 const redisPublisher = redisClient.duplicate();
+redisPublisher.on("error", (err) => {
+  console.error("Redis publisher connection error:", err);
+});
 
 // Express route handlers
 
@@ -41,13 +47,22 @@ app.get("/", (req, res) => {
 });
 
 app.get("/values/all", async (req, res) => {
-  const values = await pgClient.query("SELECT * from values");
-
-  res.send(values.rows);
+  try {
+    const values = await pgClient.query("SELECT * from values");
+    res.send(values.rows);
+  } catch (err) {
+    console.error("Failed to load values from PostgreSQL:", err);
+    res.status(503).send("Database unavailable");
+  }
 });
 
 app.get("/values/current", async (req, res) => {
   redisClient.hgetall("values", (err, values) => {
+    if (err) {
+      console.error("Failed to load current values from Redis:", err);
+      return res.status(503).send("Redis unavailable");
+    }
+
     res.send(values);
   });
 });
@@ -61,9 +76,14 @@ app.post("/values", async (req, res) => {
 
   redisClient.hset("values", index, "Nothing yet!");
   redisPublisher.publish("insert", index);
-  pgClient.query("INSERT INTO values(number) VALUES($1)", [index]);
 
-  res.send({ working: true });
+  try {
+    await pgClient.query("INSERT INTO values(number) VALUES($1)", [index]);
+    res.send({ working: true });
+  } catch (err) {
+    console.error("Failed to save value to PostgreSQL:", err);
+    res.status(503).send("Database unavailable");
+  }
 });
 
 app.listen(5000, (err) => {

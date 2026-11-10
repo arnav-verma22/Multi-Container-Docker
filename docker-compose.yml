@@ -1,4 +1,3 @@
-version: '3'
 services:
   client:
     image: 'avr22/multi-client'
@@ -27,5 +26,8 @@ services:
     image: 'avr22/multi-nginx'
     mem_limit: 128m
     hostname: nginx
+    depends_on:
+      - server
+      - client
     ports:
       - '80:80'

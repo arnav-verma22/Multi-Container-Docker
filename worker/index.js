@@ -6,7 +6,13 @@ const redisClient = redis.createClient({
   port: keys.redisPort,
   retry_strategy: () => 1000,
 });
+redisClient.on("error", (err) => {
+  console.error("Redis connection error:", err);
+});
 const sub = redisClient.duplicate();
+sub.on("error", (err) => {
+  console.error("Redis subscriber connection error:", err);
+});
 
 function fib(index) {
   if (index < 2) return 1;
