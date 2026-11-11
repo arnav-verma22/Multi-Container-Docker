@@ -10,6 +10,7 @@ services:
     environment:
       - REDIS_HOST=$REDIS_HOST
       - REDIS_PORT=$REDIS_PORT
+      - REDIS_TLS=$REDIS_TLS
       - PGUSER=$PGUSER
       - PGHOST=$PGHOST
       - PGDATABASE=$PGDATABASE
@@ -22,6 +23,7 @@ services:
     environment:
       - REDIS_HOST=$REDIS_HOST
       - REDIS_PORT=$REDIS_PORT
+      - REDIS_TLS=$REDIS_TLS
   nginx:
     image: 'avr22/multi-nginx'
     mem_limit: 128m

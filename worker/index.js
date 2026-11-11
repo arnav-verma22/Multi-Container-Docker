@@ -4,6 +4,7 @@ const redis = require('redis');
 const redisClient = redis.createClient({
   host: keys.redisHost,
   port: keys.redisPort,
+  tls: keys.redisTls ? {} : undefined,
   retry_strategy: () => 1000,
 });
 redisClient.on("error", (err) => {
