@@ -1,4 +1,6 @@
 const keys = require("./keys");
+const fs = require("fs");
+const path = require("path");
 
 // Express App Setup
 const express = require("express");
@@ -17,6 +19,12 @@ const pgClient = new Pool({
   database: keys.pgDatabase,
   password: keys.pgPassword,
   port: keys.pgPort,
+  ssl: keys.pgSsl
+    ? {
+        ca: fs.readFileSync(path.join(__dirname, "rds-global-bundle.pem"), "utf8"),
+        rejectUnauthorized: true,
+      }
+    : false,
 });
 
 pgClient.on("connect", (client) => {
